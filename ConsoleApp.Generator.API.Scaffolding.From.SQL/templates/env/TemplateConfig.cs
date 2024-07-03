@@ -1,0 +1,180 @@
+﻿using ConsoleApp.Generator.API.Scaffolding.From.SQL.utils.io;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ConsoleApp.Generator.API.Scaffolding.From.SQL.templates.env
+{
+    public class TemplateConfig
+    {
+        public string? Path { get; set; }
+        public string? Author { get; set; }
+        public string? DateCreated { get; set; }
+        public TemplateConfig() { }
+        public TemplateConfig(string path, string author, string dateCreated)
+        {
+            Path = path;
+            Author = author;
+            DateCreated = dateCreated;
+        }
+        public void Generate()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("/*");
+            sb.AppendLine("|------------------------------------------------------------------------------------------------------------------");
+            sb.AppendLine($"| Author        : {Author}");
+            sb.AppendLine($"| Date Created  : {DateCreated}");
+            sb.AppendLine("| Description   : Main configuration utility module");
+            sb.AppendLine("|------------------------------------------------------------------------------------------------------------------");
+            sb.AppendLine(" */");
+            sb.AppendLine("const { join, resolve } = require(`path`);");
+            sb.AppendLine("const { setDBConnectionString } = require(`./../utils/db/db.util`)();");
+            sb.AppendLine("const { yyyymmdd } = require(`./../utils/general/date.util`)();");
+            sb.AppendLine("const { setUri } = require(`./../utils/general/http.util`)();");
+            sb.AppendLine("const { ifJoin, ifThen } = require(`./../utils/general/object.util`)();");
+            sb.AppendLine("");
+            sb.AppendLine("require(`dotenv`).config();");
+            sb.AppendLine("");
+            sb.AppendLine("const APP_NAME = String(process.env.APP_NAME || `My.App`).trim();");
+            sb.AppendLine("const APP_ROOT_DIR = resolve(`.`);");
+            sb.AppendLine("const NODE_ENV = process.env.NODE_ENV;");
+            sb.AppendLine("const APP_ENV = String(process.env.APP_ENV || NODE_ENV || 'local').trim();");
+            sb.AppendLine("const APP_ENV_LOWER_CASE = String(APP_ENV).toLocaleLowerCase();");
+            sb.AppendLine("const APP_ENV_CONFIG_NAME = ifJoin(`.`, `.env`, APP_ENV_LOWER_CASE);");
+            sb.AppendLine("const APP_ENV_CONFIG_PATH = resolve(join(APP_ROOT_DIR, `src`, `config`, `environment`));");
+            sb.AppendLine("");
+            sb.AppendLine("const LOG_DATE = yyyymmdd();");
+            sb.AppendLine("const LOG_DIRECTORY = join(APP_ROOT_DIR, `logs`, APP_ENV_LOWER_CASE, LOG_DATE);");
+            sb.AppendLine("const LOG_FILE_NAME = ifJoin(");
+            sb.AppendLine("  `.`,");
+            sb.AppendLine("  APP_ENV_LOWER_CASE,");
+            sb.AppendLine("  APP_NAME,");
+            sb.AppendLine("  LOG_DATE,");
+            sb.AppendLine("  `log`");
+            sb.AppendLine(")?.toLocaleLowerCase()?.trim();");
+            sb.AppendLine("");
+            sb.AppendLine("const API_BASE_URL = `${String(ifJoin(`/`, process.env.API_BASE_URL, process.env.APP_COUNTRY_CODE)).toLocaleLowerCase()}`;");
+            sb.AppendLine("const API_BASE_PATH = `${String(ifJoin(`/`, API_BASE_URL, process.env.API_RELATIVE_PATH)).toLocaleLowerCase()}`;");
+            sb.AppendLine("const LOG_FILE_FULL_PATH = join(LOG_DIRECTORY, LOG_FILE_NAME);");
+            sb.AppendLine("const LOG_FILE_SIZE_LIMIT = process.env.LOG_FILE_SIZE_LIMIT;");
+            sb.AppendLine("");
+            sb.AppendLine("module.exports = {");
+            sb.AppendLine("  app: {");
+            sb.AppendLine("    APP_NAME: APP_NAME,");
+            sb.AppendLine("    APP_COMPANY_NAME: String(process.env.APP_COMPANY_NAME),");
+            sb.AppendLine("    COUNTRY: String(process.env.COUNTRY),");
+            sb.AppendLine("    environment: {");
+            sb.AppendLine("      APP_ENV: APP_ENV,");
+            sb.AppendLine("      APP_ENV_LOWER_CASE: APP_ENV_LOWER_CASE,");
+            sb.AppendLine("      NODE_ENV: NODE_ENV,");
+            sb.AppendLine("      APP_ROOT_DIR: APP_ROOT_DIR,");
+            sb.AppendLine("      APP_ENV_CONFIG_NAME: APP_ENV_CONFIG_NAME,");
+            sb.AppendLine("      APP_ENV_CONFIG_PATH: APP_ENV_CONFIG_PATH,");
+            sb.AppendLine("    },");
+            sb.AppendLine("    database: {");
+            sb.AppendLine("      DB_CONTEXT: String(process.env.DB_CONTEXT),");
+            sb.AppendLine("      MONGODB: {");
+            sb.AppendLine("        connectionString: setDBConnectionString(");
+            sb.AppendLine("          process.env.DB_MONGO_DB_PROTOCOL,");
+            sb.AppendLine("          process.env.DB_HOST,");
+            sb.AppendLine("          process.env.DB_MONGO_DB_PORT,");
+            sb.AppendLine("          process.env.DB_NAME,");
+            sb.AppendLine("          process.env.DB_AUTH_UID,");
+            sb.AppendLine("          process.env.DB_AUTH_PWD");
+            sb.AppendLine("        ),");
+            sb.AppendLine("        connectionOptions: {");
+            sb.AppendLine("          autoIndex: parseInt(process.env.DB_MONGO_DB_OPTIONS_AUTO_INDEX),");
+            sb.AppendLine("          socketTimeoutMS: parseInt(process.env.DB_OPTIONS_SOCKET_TIMEOUT_MS),");
+            sb.AppendLine("          keepAlive: Boolean(process.env.DB_MONGO_DB_OPTIONS_KEEP_ALIVE),");
+            sb.AppendLine("          maxPoolSize: parseInt(process.env.DB_OPTIONS_POOL_MAX_SIZE),");
+            sb.AppendLine("          useNewUrlParser: Boolean(process.env.DB_MONGO_DB_OPTIONS_USE_NEW_URL_PARSER),");
+            sb.AppendLine("          serverSelectionTimeoutMS:");
+            sb.AppendLine("            parseInt(process.env.DB_MONGO_DB_OPTIONS_SERVER_SELECTION_TIMEOUT_MS),");
+            sb.AppendLine("         family: String(process.env.DB_MONGO_DB_OPTIONS_FAMILY),");
+            sb.AppendLine("          // useUnifiedTopology: Boolean(process.env.DB_MONGO_DB_OPTIONS_USE_UNIFIED_TOPOLOGY),");
+            sb.AppendLine("          // useFindAndModify: Boolean(process.env.DB_MONGO_DB_OPTIONS_USE_FIND_AND_MODIFY),");
+            sb.AppendLine("        },");
+            sb.AppendLine("      },");
+            sb.AppendLine("      MSSQL: {");
+            sb.AppendLine("        connectionString: {");
+            sb.AppendLine("          server: String(process.env.DB_HOST),");
+            sb.AppendLine("          authentication: {");
+            sb.AppendLine("            type: String(process.env.DB_MSSQL_DB_OPTIONS_AUTH_TYPE),");
+            sb.AppendLine("            options: {");
+            sb.AppendLine("              //domain: String(process.env.DB_AUTH_DOMAIN),");
+            sb.AppendLine("              userName: String(process.env.DB_AUTH_UID),");
+            sb.AppendLine("              password: String(process.env.DB_AUTH_PWD),");
+            sb.AppendLine("            },");
+            sb.AppendLine("          },");
+            sb.AppendLine("          options: {");
+            sb.AppendLine("            instanceName: String(process.env.DB_MSSQL_DB_OPTIONS_INSTANCE_NAME),");
+            sb.AppendLine("            //port: parseInt(process.env.DB_MSSQL_DB_OPTIONS_DB_PORT),");
+            sb.AppendLine("            database: String(process.env.DB_NAME),");
+            sb.AppendLine("            appName: String(process.env.APP_NAME),");
+            sb.AppendLine("            trustServerCertificate: Boolean(process.env.DB_MSSQL_DB_OPTIONS_TRUST_SERVER_CERTIFICATE),");
+            sb.AppendLine("            encrypt: Boolean(process.env.DB_OPTIONS_ENCRYPT),");
+            sb.AppendLine("            connectionRetryInterval: parseInt(process.env.DB_OPTIONS_CONNECTION_RETRY_INTERVAL_MS),");
+            sb.AppendLine("            connectTimeout: parseInt(process.env.DB_OPTIONS_CONNECTION_TIMEOUT_MS),");
+            sb.AppendLine("            cancelTimeout: parseInt(process.env.DB_OPTIONS_CANCEL_TIMEOUT_MS),");
+            sb.AppendLine("            rowCollectionOnDone: Boolean(process.env.DB_MSSQL_DB_OPTIONS_ROW_COLLECTION_ON_DONE),");
+            sb.AppendLine("            //useColumnNames: Boolean(process.env.DB_MSSQL_DB_OPTIONS_USE_COLUMN_NAMES),");
+            sb.AppendLine("          },");
+            sb.AppendLine("        },");
+            sb.AppendLine("      },");
+            sb.AppendLine("      POSTGRES: {");
+            sb.AppendLine("        connectionString : {");
+            sb.AppendLine("          host: String(process.env.DB_HOST),");
+            sb.AppendLine("          user: String(process.env.DB_AUTH_UID),");
+            sb.AppendLine("          password: String(process.env.DB_AUTH_PWD),");
+            sb.AppendLine("          port: parseInt(process.env.DB_POSTGRES_DB_PORT),");
+            sb.AppendLine("          //ssl: Boolean(process.env.DB_OPTIONS_USE_SSL),");
+            sb.AppendLine("          database: String(process.env.DB_NAME),");
+            sb.AppendLine("          max: parseInt(process.env.DB_OPTIONS_POOL_MAX_SIZE),");
+            sb.AppendLine("          idleTimeoutMillis: parseInt(process.env.DB_OPTIONS_POOL_IDLE_MS),");
+            sb.AppendLine("          connectionTimeoutMillis: parseInt(process.env.DB_OPTIONS_CONNECTION_TIMEOUT_MS),");
+            sb.AppendLine("          maxUses: parseInt(process.env.DB_OPTIONS_POOL_MAX_USES),");
+            sb.AppendLine("          synchronize: Boolean(process.env.DB_POSTGRES_DB_OPTIONS_SYNCHRONIZE),");
+            sb.AppendLine("          },");
+            sb.AppendLine("        },");
+            sb.AppendLine("      },");
+            sb.AppendLine("    api: {");
+            sb.AppendLine("      API_NAME: `${ process.env.APP_COMPANY_NAME} - ${ process.env.APP_NAME} (${ process.env.APP_COUNTRY_CODE}) API`,");
+            sb.AppendLine("      API_PROTOCOL: String(process.env.API_PROTOCOL),");
+            sb.AppendLine("      API_HOST: String(process.env.API_HOST),");
+            sb.AppendLine("      API_PORT: parseInt(process.env.API_PORT),");
+            sb.AppendLine("      API_BASE_URL: API_BASE_URL,");
+            sb.AppendLine("      API_RELATIVE_PATH: process.env.API_RELATIVE_PATH,");
+            sb.AppendLine("      API_BASE_PATH: API_BASE_PATH,");
+            sb.AppendLine("      API_URI: setUri(");
+            sb.AppendLine("              process.env.API_PROTOCOL,");
+            sb.AppendLine("              process.env.API_HOST,");
+            sb.AppendLine("              process.env.API_PORT,");
+            sb.AppendLine("              API_BASE_PATH");
+            sb.AppendLine("            ),");
+            sb.AppendLine("      API_HEADERS_TIMEOUT_MS: parseInt(process.env.API_HEADERS_TIMEOUT_MS),");
+            sb.AppendLine("      API_KEEP_ALIVE_TIMEOUT_MS: parseInt(process.env.API_KEEP_ALIVE_TIMEOUT_MS),");
+            sb.AppendLine("      API_TIMEOUT_MS: parseInt(process.env.API_TIMEOUT_MS),");
+            sb.AppendLine("      options: {");
+            sb.AppendLine("         body_parser: {");
+            sb.AppendLine("             extended: Boolean(process.env.API_BODY_PARSER_EXTENDED),");
+            sb.AppendLine("             limit: parseInt(process.env.API_BODY_PARSER_LIMIT),");
+            sb.AppendLine("             parameterLimit: parseInt(process.env.API_BODY_PARSER_PARAMETER_LIMIT),");
+            sb.AppendLine("         },");
+            sb.AppendLine("      },");
+            sb.AppendLine("    },");
+            sb.AppendLine("    logging: {");
+            sb.AppendLine("      LOG_DIRECTORY: LOG_DIRECTORY,");
+            sb.AppendLine("      LOG_FILE_NAME: LOG_FILE_NAME,");
+            sb.AppendLine("      LOG_FILE_FULL_PATH: LOG_FILE_FULL_PATH,");
+            sb.AppendLine("      LOG_FILE_SIZE_LIMIT: LOG_FILE_SIZE_LIMIT,");
+            sb.AppendLine("    },");
+            sb.AppendLine("  },");
+            sb.AppendLine("};");
+            new FileIO(Path).Replace(sb.ToString());
+        }
+    }
+}
